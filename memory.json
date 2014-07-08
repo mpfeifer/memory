@@ -1,0 +1,14 @@
+{
+    "fieldWidth":128,
+    "fieldHeight":128,
+    "deckXdim": 6,
+    "deckYdim":5,
+    "paddingLeft":32,
+    "paddingTop":32,
+    "imageSources" : [ "bird2.png", "bird.png", "turtle.png" ],
+    "hInterFieldSpace":15,
+    "vInterFieldSpace":15,
+    "blankRGB":[128, 128, 128],
+    "backgroundRGB":[150, 150, 255],
+    "cardBackgroundRGB":[ 75, 75, 255 ]
+}

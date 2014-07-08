@@ -1,32 +1,32 @@
 var canvas = document.getElementById('memcan');
 var ctx = canvas.getContext('2d');
 
-var errorLevel = 4; // 0 - log everything ; 4 - log nothing
-
+// These variables are configurable via memory.json
 var fieldWidth = 128;
 var fieldHeight = fieldWidth;
-var deckXdim = 6;
-var deckYdim = 5;
+var deckXdim = 0;
+var deckYdim = 0;
 var paddingLeft = 32;
 var paddingTop = 32;
+
+var imageSources = [ "bird2.png", "bird.png", "turtle.png" ];
+
+var hInterFieldSpace = 15;
+var vInterFieldSpace = 15;
+
+var blankRGB = [128, 128, 128];
+var backgroundRGB = [150, 150, 255];
+var cardBackgroundRGB = [ 75, 75, 255 ];
+// end of json-configurable variables
 
 // deck codes
 var deckCardEliminated = -1;
 var deckShowBackground  = 0;
 var deckShowCardVisible = 1;
 
-var deck = [];
-var images = [];
-var imageSources = [ "bird2.png", "bird.png", "turtle.png" ];
-var imageObjects = [];
+var configurationFinished = 0;
 
-var hInterFieldSpace = 15;
-var vInterFieldSpace = 15;
-
-
-var blankRGB = [128, 128, 128];
-var backgroundRGB = [150, 150, 255];
-var cardBackgroundRGB = [ 75, 75, 255 ];
+var errorLevel = 4; // 0 - log everything ; 4 - log nothing
 
 // 0 - wait for first click
 // 1 - one card visible
@@ -37,6 +37,10 @@ var gameState = 0;
 var firstSelection = [-1, -1];
 var secondSelection = [-1, -1];
 
+var deck = [];
+var images = [];
+var imageObjects = [];
+
 // results
 var pairsFound = 0;
 
@@ -44,6 +48,35 @@ function debug(msg, level) {
     if (level > errorLevel) {
 	alert(msg);
     }
+}
+
+function MemoryLoadConfiguration() {
+    var xhr=new XMLHttpRequest();
+    xhr.open("GET","memory.json",true);
+    xhr.send();
+    xhr.onreadystatechange=function() {
+	if (xhr.readyState == 4) {
+	    var jsondata = eval('('+xhr.responseText+')');
+	    fieldWidth = jsondata.fieldWidth;
+	    fieldHeight = jsondata.fieldHeight;
+	    deckXdim = jsondata.deckXdim;
+	    deckYdim = jsondata.deckYdim;
+	    paddingLeft = jsondata.paddingLeft;
+	    paddingTop = jsondata.paddingTop;
+	    imageSources = jsondata.imageSources;
+	    hInterFieldSpace = jsondata.hInterFieldSpace;
+	    vInterFieldSpace = jsondata.vInterFieldSpace;
+	    blankRGB = jsondata.blankRGB;
+	    backgroundRGB = jsondata.backgroundRGB;
+	    cardBackgroundRGB = jsondata.cardBackgroundRGB;
+	    MemoryInitDeck();
+	    configurationFinished=1;
+	    if (document.readyState == "complete") {
+		debug("ajax handler is first.", 1);
+		MemoryDrawDeck();
+	    }
+	}
+    };
 }
 
 function MemoryInitDeck() {
@@ -147,6 +180,14 @@ function ShowCardBackground(rgb, currentX, currentY) {
 
 function MemoryDrawDeck() {
 
+    // maximize canvas width and hight
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    debug("OnLoadHandler reports canvas width = "
+	  + canvas.width + " and canvas height = "
+	  + canvas.height + ".", 4);
+
     // background
     MemoryDrawBackground();
 
@@ -180,15 +221,10 @@ function MemoryDrawDeck() {
 
 
 function MemoryOnLoadHandler() {
-    // maximize canvas width and hight
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    MemoryDrawDeck();
-    
-    debug("OnLoadHandler reports canvas width = "
-	  + canvas.width + " and canvas height = "
-	  + canvas.height + ".", 4);
+    if (configurationFinished) {
+	debug("onloadhandler is first.", 1);
+	MemoryDrawDeck();
+    }
 }
 
 function MemoryCardSelectionHandler(event, selection) {
@@ -237,8 +273,8 @@ function MemoryClickHandler(event) {
     MemoryDrawDeck();
 }
 
-MemoryInitDeck();
+MemoryLoadConfiguration();
 
-window.onload=MemoryOnLoadHandler;
+
 
 canvas.addEventListener('click', MemoryClickHandler);
